@@ -1,0 +1,16 @@
+After saving CLAUDE.md, also create a small tasks/ folder in the same root and add two empty starter files inside it:
+
+tasks/todo.md
+tasks/lessons.md
+
+
+I have set up CLAUDE.md, tasks/todo.md, and tasks/lessons.md following the workflow guidelines.
+
+Please:
+1. Read and confirm you are following the CLAUDE.md instructions.
+2. Review the current project structure.
+3. Help me define the first task or goal for this project (or I'll tell you what I want to build/fix).
+
+Start by creating a clear plan in tasks/todo.md using the checklist format.
+
+if folder does not here, create for me
