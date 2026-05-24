@@ -63,6 +63,10 @@ export function Sidebar() {
         </button>
       </Section>
 
+      <Section title="CSS" defaultOpen={false}>
+        <CssSection />
+      </Section>
+
       <Section title="Export" defaultOpen={false}>
         <div className="space-y-1">
           <button onClick={exportJSON} className="w-full text-left px-3 py-1.5 text-sm hover:bg-neutral-100 border border-neutral-300 hover:border-neutral-400 transition-colors">
@@ -234,6 +238,82 @@ function BackgroundControls() {
           ))}
         </div>
       )}
+    </div>
+  )
+}
+
+function CssSection() {
+  const { customStyles, activeElementId, elements, deleteCustomStyle, renameCustomStyle, applyCustomStyle } = usePresentationStore()
+  const [editingId, setEditingId] = useState(null)
+  const [editName, setEditName] = useState('')
+
+  const activeElement = elements.find(e => e.id === activeElementId)
+
+  const groups = [
+    { type: 'title', label: 'Title' },
+    { type: 'text', label: 'Text' },
+  ]
+
+  const handleRename = (id) => {
+    if (editName.trim()) renameCustomStyle(id, editName.trim())
+    setEditingId(null)
+  }
+
+  const handleClick = (style) => {
+    if (!activeElement || activeElement.type !== style.type) return
+    applyCustomStyle(style.id, activeElement.id)
+  }
+
+  return (
+    <div className="space-y-2 pl-2">
+      {groups.map(({ type, label }) => {
+        const items = customStyles.filter(s => s.type === type)
+        return (
+          <div key={type}>
+            <div className="text-[10px] text-neutral-400 uppercase tracking-wide">{label}</div>
+            {items.length === 0 ? (
+              <div className="text-[10px] text-neutral-300 pl-2">No saved styles</div>
+            ) : (
+              <div className="space-y-0.5">
+                {items.map(style => (
+                  <div key={style.id} className="flex items-center gap-1 group pl-1">
+                    {editingId === style.id ? (
+                      <input
+                        type="text" value={editName} onChange={(e) => setEditName(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') handleRename(style.id); if (e.key === 'Escape') setEditingId(null) }}
+                        onBlur={() => handleRename(style.id)}
+                        className="flex-1 min-w-0 px-1 py-0 text-xs border border-neutral-300" autoFocus
+                      />
+                    ) : (
+                      <button
+                        onClick={() => handleClick(style)}
+                        className={`flex-1 min-w-0 text-left text-xs px-1 py-0 truncate hover:bg-neutral-100 transition-colors ${activeElement?.type === style.type ? 'text-neutral-700' : 'text-neutral-400'}`}
+                        title={`Apply "${style.name}"`}
+                      >
+                        {style.name}
+                      </button>
+                    )}
+                    <button
+                      onClick={() => { setEditingId(style.id); setEditName(style.name) }}
+                      className="text-[10px] text-neutral-300 hover:text-neutral-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                      title="Rename"
+                    >
+                      edit
+                    </button>
+                    <button
+                      onClick={() => { if (confirm(`Delete "${style.name}"?`)) deleteCustomStyle(style.id) }}
+                      className="text-[10px] text-neutral-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                      title="Delete"
+                    >
+                      x
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )
+      })}
     </div>
   )
 }

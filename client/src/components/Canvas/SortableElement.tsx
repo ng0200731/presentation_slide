@@ -3,8 +3,10 @@ import { CSS } from '@dnd-kit/utilities'
 import { usePresentationStore } from '../../stores/presentationStore'
 
 export function SortableElement({ element, children }) {
-  const { activeElementId, setActiveElement, deleteElement } = usePresentationStore()
+  const { activeElementId, setActiveElement, deleteElement, customStyles } = usePresentationStore()
   const isActive = activeElementId === element.id
+
+  const appliedStyle = element.style_id ? customStyles.find(s => s.id === element.style_id) : null
 
   const {
     attributes,
@@ -53,9 +55,10 @@ export function SortableElement({ element, children }) {
         </svg>
       </div>
 
-      {/* Element type label */}
-      <div className="absolute -top-5 left-0 text-[10px] text-neutral-400 opacity-0 group-hover:opacity-100 transition-opacity">
-        {element.type}
+      {/* Element type label + style name - always show when active */}
+      <div className={`absolute -top-5 left-0 text-[10px] text-neutral-400 flex items-center gap-1 transition-opacity ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+        <span>{element.type}</span>
+        {appliedStyle && <span className="bg-neutral-200 px-1 rounded">{appliedStyle.name}</span>}
       </div>
 
       {/* Active controls */}

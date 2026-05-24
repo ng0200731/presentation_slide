@@ -32,6 +32,7 @@ export const usePresentationStore = create((set, get) => ({
   isLoading: true,
   error: null,
   copiedStyle: null,
+  customStyles: [],
 
   load: async (retryCount = 0) => {
     set({ isLoading: true, error: null })
@@ -61,6 +62,7 @@ export const usePresentationStore = create((set, get) => ({
         isLoading: false,
         error: null,
       })
+      get().loadCustomStyles()
     } catch (err) {
       console.error('Failed to load:', err.message)
       if (retryCount < 3) {
@@ -219,5 +221,75 @@ export const usePresentationStore = create((set, get) => ({
     const { copiedStyle } = get()
     if (!copiedStyle) return
     get().updateElement(elementId, { styles: { ...copiedStyle } })
+  },
+
+  loadCustomStyles: async () => {
+    try {
+      const rows = await apiFetch('/styles')
+      const parsed = rows.map(s => ({
+        ...s,
+        styles: typeof s.styles === 'string' ? JSON.parse(s.styles) : s.styles || {},
+      }))
+      set({ customStyles: parsed })
+    } catch (err) {
+      console.error('Failed to load custom styles:', err.message)
+    }
+  },
+
+  saveCustomStyle: async ({ name, type, styles }) => {
+    try {
+      const result = await apiFetch('/styles', {
+        method: 'POST',
+        body: JSON.stringify({ name, type, styles }),
+      })
+      set({ customStyles: [...get().customStyles, { id: result.id, name, type, styles }] })
+    } catch (err) {
+      console.error('Failed to save custom style:', err.message)
+    }
+  },
+
+  deleteCustomStyle: async (styleId) => {
+    try {
+      await apiFetch(`/styles/${styleId}`, { method: 'DELETE' })
+      set({ customStyles: get().customStyles.filter(s => s.id !== styleId) })
+    } catch (err) {
+      console.error('Failed to delete custom style:', err.message)
+    }
+  },
+
+  renameCustomStyle: async (styleId, newName) => {
+    try {
+      const style = get().customStyles.find(s => s.id === styleId)
+      if (!style) return
+      await apiFetch(`/styles/${styleId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ name: newName, styles: style.styles }),
+      })
+      set({ customStyles: get().customStyles.map(s => s.id === styleId ? { ...s, name: newName } : s) })
+    } catch (err) {
+      console.error('Failed to rename custom style:', err.message)
+    }
+  },
+
+  updateCustomStyle: async (styleId, newStyles) => {
+    try {
+      const style = get().customStyles.find(s => s.id === styleId)
+      if (!style) return
+      await apiFetch(`/styles/${styleId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ name: style.name, styles: newStyles }),
+      })
+      set({ customStyles: get().customStyles.map(s => s.id === styleId ? { ...s, styles: newStyles } : s) })
+    } catch (err) {
+      console.error('Failed to update custom style:', err.message)
+    }
+  },
+
+  applyCustomStyle: (styleId, elementId) => {
+    const { customStyles, elements } = get()
+    const style = customStyles.find(s => s.id === styleId)
+    const element = elements.find(e => e.id === elementId)
+    if (!style || !element || style.type !== element.type) return
+    get().updateElement(elementId, { styles: { ...style.styles }, style_id: styleId })
   },
 }))
