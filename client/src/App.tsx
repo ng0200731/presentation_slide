@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { DndContext, closestCenter, DragEndEvent } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { usePresentationStore } from './stores/presentationStore'
@@ -7,10 +7,19 @@ import { Sidebar } from './components/Sidebar/Sidebar'
 
 function App() {
   const { isLoading, error, load, elements, reorderElements } = usePresentationStore()
+  const [isFullscreen, setIsFullscreen] = useState(false)
 
   useEffect(() => {
     load()
   }, [])
+
+  useEffect(() => {
+    const handleKey = (e) => {
+      if (e.key === 'Escape' && isFullscreen) setIsFullscreen(false)
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [isFullscreen])
 
   if (isLoading) {
     return (
@@ -44,17 +53,12 @@ function App() {
     }
   }
 
-  const enterFullscreen = () => {
-    const el = document.querySelector('[data-canvas]') as HTMLElement
-    if (el) el.requestFullscreen()
-  }
-
   return (
     <div className="min-h-screen bg-neutral-100 flex flex-col">
       <header className="h-12 bg-white border-b border-neutral-200 flex items-center justify-between px-4 shrink-0">
         <h1 className="text-sm font-medium tracking-tight">PPT Style</h1>
         <button
-          onClick={enterFullscreen}
+          onClick={() => setIsFullscreen(!isFullscreen)}
           className="w-8 h-8 border border-neutral-300 hover:border-neutral-400 hover:bg-neutral-50 flex items-center justify-center transition-colors"
           title="Fullscreen presentation (Esc to exit)"
         >
@@ -67,10 +71,10 @@ function App() {
       <div className="flex flex-1 overflow-hidden">
         <Sidebar />
 
-        <main className="flex-1 overflow-auto flex justify-center py-8 bg-neutral-200">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden flex justify-center py-8 bg-neutral-200 min-h-0">
           <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <SortableContext items={elements.map((el: any) => el.id)} strategy={verticalListSortingStrategy}>
-              <Canvas />
+              <Canvas isFullscreen={isFullscreen} onExitFullscreen={() => setIsFullscreen(false)} />
             </SortableContext>
           </DndContext>
         </main>

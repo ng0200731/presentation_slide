@@ -100,7 +100,7 @@ export function TitleToolbar({ element, editorRef, onToolbarFocus, onToolbarBlur
 
       {/* Padding - expands */}
       <div className="flex items-center gap-1 flex-1 min-w-0">
-        <span className="text-[10px] text-neutral-400 shrink-0">PT</span>
+        <span className="text-[10px] text-neutral-400 shrink-0">Pad&nbsp;T</span>
         <input
           type="number"
           value={styles.paddingTop ?? 0}
@@ -110,7 +110,7 @@ export function TitleToolbar({ element, editorRef, onToolbarFocus, onToolbarBlur
           className="flex-1 min-w-0 px-1 py-0.5 text-xs border border-neutral-300 text-center"
           title="Padding Top"
         />
-        <span className="text-[10px] text-neutral-400 shrink-0">PB</span>
+        <span className="text-[10px] text-neutral-400 shrink-0">Pad&nbsp;B</span>
         <input
           type="number"
           value={styles.paddingBottom ?? 0}
