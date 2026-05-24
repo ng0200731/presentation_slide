@@ -47,22 +47,6 @@ function SpacingGroup({ label, topKey, bottomKey, leftKey, rightKey, element, on
   return (
     <div className="flex items-center gap-1 flex-1 min-w-0">
       <span className="text-[10px] text-neutral-500 shrink-0 font-medium">{label}</span>
-      <div className="flex items-center gap-0.5 shrink-0">
-        <button
-          onClick={() => setLinkTB(!linkTB)}
-          className={`w-4 h-4 flex items-center justify-center text-[8px] border rounded ${linkTB ? 'bg-black text-white border-black' : 'border-neutral-300 text-neutral-400'}`}
-          title="Link Top/Bottom"
-        >
-          TB
-        </button>
-        <button
-          onClick={() => setLinkLR(!linkLR)}
-          className={`w-4 h-4 flex items-center justify-center text-[8px] border rounded ${linkLR ? 'bg-black text-white border-black' : 'border-neutral-300 text-neutral-400'}`}
-          title="Link Left/Right"
-        >
-          LR
-        </button>
-      </div>
       <input
         type="number"
         value={styles[topKey] ?? 0}
@@ -81,6 +65,13 @@ function SpacingGroup({ label, topKey, bottomKey, leftKey, rightKey, element, on
         className="flex-1 min-w-0 px-1 py-0.5 text-xs border border-neutral-300 text-center"
         title={`${label} Bottom`}
       />
+      <button
+        onClick={() => setLinkTB(!linkTB)}
+        className={`w-4 h-4 flex items-center justify-center text-[8px] border rounded shrink-0 ${linkTB ? 'bg-black text-white border-black' : 'border-neutral-300 text-neutral-400'}`}
+        title="Link Top/Bottom"
+      >
+        TB
+      </button>
       <input
         type="number"
         value={styles[rightKey] ?? 0}
@@ -99,6 +90,13 @@ function SpacingGroup({ label, topKey, bottomKey, leftKey, rightKey, element, on
         className="flex-1 min-w-0 px-1 py-0.5 text-xs border border-neutral-300 text-center"
         title={`${label} Left`}
       />
+      <button
+        onClick={() => setLinkLR(!linkLR)}
+        className={`w-4 h-4 flex items-center justify-center text-[8px] border rounded shrink-0 ${linkLR ? 'bg-black text-white border-black' : 'border-neutral-300 text-neutral-400'}`}
+        title="Link Left/Right"
+      >
+        LR
+      </button>
     </div>
   )
 }

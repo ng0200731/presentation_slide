@@ -17,8 +17,17 @@ export function exportJSON() {
   downloadFile(JSON.stringify(data, null, 2), `${title || 'presentation'}.json`, 'application/json')
 }
 
+function contentToPlainText(content) {
+  if (typeof content === 'string') return content
+  if (!Array.isArray(content)) return ''
+  return content.map(block => {
+    if (block?.children) return block.children.map(c => c.text || '').join('')
+    return ''
+  }).join('\n')
+}
+
 export function exportHTML() {
-  const { title, background, elements } = usePresentationStore.getState()
+  const { title, background, canvasPadding, canvasMargin, elements } = usePresentationStore.getState()
 
   const bgStyle = background.type === 'solid'
     ? `background-color: ${background.color};`
@@ -28,24 +37,35 @@ export function exportHTML() {
         ? `background: radial-gradient(circle, ${(background.stops || []).map(s => `${s.color} ${s.position}%`).join(', ')});`
         : ''
 
+  const pad = canvasPadding || { top: 32, right: 32, bottom: 32, left: 32 }
+  const mar = canvasMargin || { top: 0, right: 0, bottom: 0, left: 0 }
+
   const elementsHTML = elements.map(el => {
-    const text = el.content?.[0]?.children?.[0]?.text || ''
+    const text = contentToPlainText(el.content)
     const styles = el.styles || {}
     const css = [
-      styles.fontFamily ? `font-family: ${styles.fontFamily};` : '',
+      styles.fontFamily && styles.fontFamily !== 'inherit' ? `font-family: ${styles.fontFamily};` : '',
       styles.fontSize ? `font-size: ${styles.fontSize}px;` : '',
       styles.color ? `color: ${styles.color};` : '',
       styles.textAlign ? `text-align: ${styles.textAlign};` : '',
       styles.lineHeight ? `line-height: ${styles.lineHeight};` : '',
-      el.margin ? `margin: ${el.margin};` : '',
-      el.padding ? `padding: ${el.padding};` : '',
+      styles.paddingTop ? `padding-top: ${styles.paddingTop}px;` : '',
+      styles.paddingBottom ? `padding-bottom: ${styles.paddingBottom}px;` : '',
+      styles.paddingLeft ? `padding-left: ${styles.paddingLeft}px;` : '',
+      styles.paddingRight ? `padding-right: ${styles.paddingRight}px;` : '',
+      styles.marginTop ? `margin-top: ${styles.marginTop}px;` : '',
+      styles.marginBottom ? `margin-bottom: ${styles.marginBottom}px;` : '',
+      styles.marginLeft ? `margin-left: ${styles.marginLeft}px;` : '',
+      styles.marginRight ? `margin-right: ${styles.marginRight}px;` : '',
     ].filter(Boolean).join(' ')
 
+    const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>')
+
     if (el.type === 'title') {
-      return `<h1 style="font-size: 28px; font-weight: bold; ${css}">${text}</h1>`
+      return `<h1 style="font-size: 28px; font-weight: bold; ${css}">${escaped || 'Title'}</h1>`
     }
     if (el.type === 'text') {
-      return `<p style="font-size: 16px; ${css}">${text}</p>`
+      return `<p style="font-size: 16px; ${css}">${escaped || 'Content'}</p>`
     }
     if (el.type === 'image') {
       const src = el.content || ''
@@ -65,7 +85,7 @@ export function exportHTML() {
   <title>${title || 'Presentation'}</title>
   <style>
     body { margin: 0; padding: 0; background: #f5f5f5; display: flex; justify-content: center; }
-    .canvas { width: 960px; min-height: 800px; margin: 40px auto; padding: 32px; ${bgStyle} box-sizing: border-box; }
+    .canvas { width: 960px; min-height: 800px; margin: ${mar.top}px ${mar.right}px ${mar.bottom}px ${mar.left}px; padding: ${pad.top}px ${pad.right}px ${pad.bottom}px ${pad.left}px; ${bgStyle} box-sizing: border-box; }
   </style>
 </head>
 <body>
@@ -78,16 +98,23 @@ export function exportHTML() {
   downloadFile(html, `${title || 'presentation'}.html`, 'text/html')
 }
 
-export async function exportPNG() {
+async function captureCanvas() {
   const html2canvas = (await import('html2canvas')).default
   const canvasEl = document.querySelector('[data-canvas]')
-  if (!canvasEl) return
+  if (!canvasEl) return null
 
-  const canvas = await html2canvas(canvasEl, {
+  return html2canvas(canvasEl, {
     scale: 2,
     useCORS: true,
     backgroundColor: null,
+    logging: false,
   })
+}
+
+export async function exportPNG() {
+  const canvas = await captureCanvas()
+  if (!canvas) return
+
   const link = document.createElement('a')
   link.download = `${usePresentationStore.getState().title || 'presentation'}.png`
   link.href = canvas.toDataURL('image/png')
@@ -95,27 +122,19 @@ export async function exportPNG() {
 }
 
 export async function exportPDF() {
-  const html2canvas = (await import('html2canvas')).default
+  const canvas = await captureCanvas()
+  if (!canvas) return
+
   const { jsPDF } = await import('jspdf')
-
-  const canvasEl = document.querySelector('[data-canvas]')
-  if (!canvasEl) return
-
-  const canvas = await html2canvas(canvasEl, {
-    scale: 2,
-    useCORS: true,
-    backgroundColor: null,
-  })
 
   const imgData = canvas.toDataURL('image/png')
   const imgWidth = 960
-  const pageHeight = 1200
   const imgHeight = (canvas.height * imgWidth) / canvas.width
 
   const pdf = new jsPDF({
-    orientation: imgHeight > pageHeight ? 'portrait' : 'landscape',
+    orientation: imgHeight > imgWidth ? 'portrait' : 'landscape',
     unit: 'px',
-    format: [imgWidth + 64, Math.max(imgHeight + 64, pageHeight)],
+    format: [imgWidth + 64, Math.max(imgHeight + 64, 1200)],
   })
 
   pdf.addImage(imgData, 'PNG', 32, 32, imgWidth, imgHeight)

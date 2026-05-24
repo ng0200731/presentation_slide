@@ -35,6 +35,7 @@ export function Canvas({ isFullscreen, onExitFullscreen }) {
 
   const content = (
     <div
+      data-canvas
       className="bg-white border border-neutral-200 w-canvas"
       style={canvasStyle}
       onClick={() => setActiveElement(null)}
