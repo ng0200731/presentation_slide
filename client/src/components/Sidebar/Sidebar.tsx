@@ -87,7 +87,7 @@ function BackgroundControls() {
   const { background, setBackground, canvasPadding, setCanvasPadding, canvasMargin, setCanvasMargin } = usePresentationStore()
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 pl-3">
       {/* Padding Controls */}
       <div>
         <label className="text-xs text-neutral-500 mb-1 block">Padding</label>
