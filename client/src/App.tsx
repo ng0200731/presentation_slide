@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { DndContext, closestCenter, DragEndEvent } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { usePresentationStore } from './stores/presentationStore'
@@ -6,19 +6,10 @@ import { Canvas } from './components/Canvas/Canvas'
 import { Sidebar } from './components/Sidebar/Sidebar'
 
 function App() {
-  const { isLoading, error, load, elements, reorderElements, background } = usePresentationStore()
-  const [fullscreen, setFullscreen] = useState(false)
+  const { isLoading, error, load, elements, reorderElements } = usePresentationStore()
 
   useEffect(() => {
     load()
-  }, [])
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setFullscreen(false)
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
   }, [])
 
   if (isLoading) {
@@ -53,68 +44,19 @@ function App() {
     }
   }
 
-  const bgStyle = background.type === 'solid'
-    ? { backgroundColor: background.color }
-    : background.type === 'linear'
-      ? { background: `linear-gradient(${background.angle || 0}deg, ${(background.stops || []).map((s: any) => `${s.color} ${s.position}%`).join(', ')})` }
-      : background.type === 'radial'
-        ? { background: `radial-gradient(circle, ${(background.stops || []).map((s: any) => `${s.color} ${s.position}%`).join(', ')})` }
-        : {}
-
-  // Fullscreen presentation mode
-  if (fullscreen) {
-    return (
-      <div className="fixed inset-0 z-50 overflow-auto" style={bgStyle} onClick={() => setFullscreen(false)}>
-        <button
-          onClick={() => setFullscreen(false)}
-          className="fixed top-4 right-4 z-50 w-8 h-8 bg-black/20 hover:bg-black/40 flex items-center justify-center text-white text-sm transition-colors"
-          title="Exit (Esc)"
-        >
-          ✕
-        </button>
-        <div className="max-w-4xl mx-auto p-8 md:p-16">
-          {elements.map((element: any) => {
-            const text = element.content?.[0]?.children?.[0]?.text || ''
-            const src = element.content || ''
-            const styles = element.styles || {}
-            const style: any = {
-              fontFamily: styles.fontFamily || 'inherit',
-              fontSize: styles.fontSize ? `${styles.fontSize}px` : undefined,
-              color: styles.color || '#000000',
-              textAlign: styles.textAlign || 'left',
-              lineHeight: styles.lineHeight || undefined,
-            }
-
-            if (element.type === 'title') {
-              return <h1 key={element.id} className="text-4xl md:text-5xl font-bold mb-6" style={style}>{text}</h1>
-            }
-            if (element.type === 'text') {
-              return <p key={element.id} className="text-lg md:text-xl mb-6" style={style}>{text}</p>
-            }
-            if (element.type === 'image' && src) {
-              return (
-                <div key={element.id} className="mb-6">
-                  <img src={src} alt="" style={{ width: styles.width || '100%', height: styles.height || 'auto' }} />
-                  {styles.caption && <p className="text-xs text-neutral-500 mt-1 text-center">{styles.caption}</p>}
-                </div>
-              )
-            }
-            return null
-          })}
-        </div>
-      </div>
-    )
+  const enterFullscreen = () => {
+    const el = document.querySelector('[data-canvas]') as HTMLElement
+    if (el) el.requestFullscreen()
   }
 
-  // Editor mode
   return (
     <div className="min-h-screen bg-neutral-100 flex flex-col">
       <header className="h-12 bg-white border-b border-neutral-200 flex items-center justify-between px-4 shrink-0">
         <h1 className="text-sm font-medium tracking-tight">PPT Style</h1>
         <button
-          onClick={() => setFullscreen(true)}
+          onClick={enterFullscreen}
           className="w-8 h-8 border border-neutral-300 hover:border-neutral-400 hover:bg-neutral-50 flex items-center justify-center transition-colors"
-          title="Fullscreen presentation (click to exit)"
+          title="Fullscreen presentation (Esc to exit)"
         >
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
             <path d="M1 5V1h4M9 1h4v4M13 9v4H9M5 13H1V9" />

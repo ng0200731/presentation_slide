@@ -1,13 +1,29 @@
+import { useState } from 'react'
 import { usePresentationStore } from '../../stores/presentationStore'
 import { exportJSON, exportHTML, exportPNG, exportPDF } from '../../utils/exportUtils'
+
+function Section({ title, defaultOpen = true, children }) {
+  const [open, setOpen] = useState(defaultOpen)
+  return (
+    <div>
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between text-xs font-medium uppercase tracking-wide"
+      >
+        {title}
+        <span className="text-[10px]">{open ? '−' : '+'}</span>
+      </button>
+      {open && <div className="mt-2">{children}</div>}
+    </div>
+  )
+}
 
 export function Sidebar() {
   const { addElement, clearAllElements } = usePresentationStore()
 
   return (
     <aside className="w-56 bg-white border-r border-neutral-200 p-4 flex flex-col gap-4 shrink-0">
-      <div>
-        <h2 className="text-xs font-medium mb-2 uppercase tracking-wide">Add Element</h2>
+      <Section title="Add Element" defaultOpen={true}>
         <div className="space-y-1">
           <button
             onClick={() => addElement('title')}
@@ -28,10 +44,9 @@ export function Sidebar() {
             + Image
           </button>
         </div>
-      </div>
+      </Section>
 
-      <div>
-        <h2 className="text-xs font-medium mb-2 uppercase tracking-wide">Actions</h2>
+      <Section title="Actions" defaultOpen={false}>
         <button
           onClick={() => {
             if (confirm('Delete all elements?')) {
@@ -42,15 +57,13 @@ export function Sidebar() {
         >
           Clear All
         </button>
-      </div>
+      </Section>
 
-      <div>
-        <h2 className="text-xs font-medium mb-2 uppercase tracking-wide">Background</h2>
+      <Section title="Background" defaultOpen={false}>
         <BackgroundControls />
-      </div>
+      </Section>
 
-      <div>
-        <h2 className="text-xs font-medium mb-2 uppercase tracking-wide">Export</h2>
+      <Section title="Export" defaultOpen={false}>
         <div className="space-y-1">
           <button onClick={exportJSON} className="w-full text-left px-3 py-1.5 text-sm hover:bg-neutral-100 border border-neutral-300 hover:border-neutral-400 transition-colors">
             JSON
@@ -65,7 +78,7 @@ export function Sidebar() {
             PDF
           </button>
         </div>
-      </div>
+      </Section>
     </aside>
   )
 }
