@@ -131,7 +131,7 @@ export function TitleToolbar({ element, editorRef, onToolbarFocus, onToolbarBlur
 
         <div className="w-px h-5 bg-neutral-200 shrink-0" />
 
-        <select value={styles.fontSize || 32} onChange={(e) => updateStyle('fontSize', parseInt(e.target.value))} className="shrink-0 px-1 py-0.5 text-xs border border-neutral-300 bg-white rounded w-14">
+        <select value={styles.fontSize || (element.type === 'title' ? 32 : 16)} onChange={(e) => updateStyle('fontSize', parseInt(e.target.value))} className="shrink-0 px-1 py-0.5 text-xs border border-neutral-300 bg-white rounded w-14">
           {FONT_SIZES.map(s => <option key={s} value={s}>{s}px</option>)}
         </select>
 
