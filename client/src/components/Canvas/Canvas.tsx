@@ -55,7 +55,7 @@ export function Canvas({ isFullscreen, onExitFullscreen }) {
 
   if (isFullscreen) {
     return (
-      <div className="fixed inset-0 z-[9999] overflow-y-auto flex justify-center" style={bgStyle}>
+      <div className="fixed inset-0 z-[9999] overflow-y-auto flex justify-center fullscreen-canvas" style={bgStyle}>
         <button
           onClick={onExitFullscreen}
           className="fixed top-4 right-4 z-[10000] bg-white text-black px-3 py-1.5 text-sm border border-neutral-300 hover:bg-neutral-100"

@@ -77,6 +77,12 @@ export function TitleElement({ element }) {
           lineHeight: styles.lineHeight || 1.2,
           paddingTop: styles.paddingTop ? `${styles.paddingTop}px` : undefined,
           paddingBottom: styles.paddingBottom ? `${styles.paddingBottom}px` : undefined,
+          paddingLeft: styles.paddingLeft ? `${styles.paddingLeft}px` : undefined,
+          paddingRight: styles.paddingRight ? `${styles.paddingRight}px` : undefined,
+          marginTop: styles.marginTop ? `${styles.marginTop}px` : undefined,
+          marginBottom: styles.marginBottom ? `${styles.marginBottom}px` : undefined,
+          marginLeft: styles.marginLeft ? `${styles.marginLeft}px` : undefined,
+          marginRight: styles.marginRight ? `${styles.marginRight}px` : undefined,
         }}
         onClick={(e) => {
           e.stopPropagation()

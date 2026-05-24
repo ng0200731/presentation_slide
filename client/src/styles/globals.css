@@ -2,4 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Slate editor styles will be added later */
+/* Scrollbar matches background */
+.fullscreen-canvas::-webkit-scrollbar {
+  width: 8px;
+}
+.fullscreen-canvas::-webkit-scrollbar-track {
+  background: inherit;
+}
+.fullscreen-canvas::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.2);
+  border-radius: 4px;
+}
+.fullscreen-canvas::-webkit-scrollbar-thumb:hover {
+  background: rgba(0,0,0,0.4);
+}
