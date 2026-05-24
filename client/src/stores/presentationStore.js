@@ -92,9 +92,9 @@ export const usePresentationStore = create((set, get) => ({
     }
 
     const defaultContent = type === 'title'
-      ? [{ children: [{ text: 'Title' }] }]
+      ? [{ children: [{ text: '' }] }]
       : type === 'text'
-        ? [{ children: [{ text: 'Content' }] }]
+        ? [{ children: [{ text: '' }] }]
         : ''
 
     try {

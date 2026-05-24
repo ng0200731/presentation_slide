@@ -1,10 +1,11 @@
 import { usePresentationStore } from '../../stores/presentationStore'
+import { exportJSON, exportHTML, exportPNG, exportPDF } from '../../utils/exportUtils'
 
 export function Sidebar() {
   const { addElement, clearAllElements } = usePresentationStore()
 
   return (
-    <aside className="w-56 bg-white border-r border-black p-4 flex flex-col gap-4 shrink-0">
+    <aside className="w-56 bg-white border-r border-neutral-200 p-4 flex flex-col gap-4 shrink-0">
       <div>
         <h2 className="text-xs font-medium mb-2 uppercase tracking-wide">Add Element</h2>
         <div className="space-y-1">
@@ -50,7 +51,20 @@ export function Sidebar() {
 
       <div>
         <h2 className="text-xs font-medium mb-2 uppercase tracking-wide">Export</h2>
-        <div className="text-xs text-neutral-400">Coming in Phase 8</div>
+        <div className="space-y-1">
+          <button onClick={exportJSON} className="w-full text-left px-3 py-1.5 text-sm hover:bg-neutral-100 border border-neutral-300 hover:border-neutral-400 transition-colors">
+            JSON
+          </button>
+          <button onClick={exportHTML} className="w-full text-left px-3 py-1.5 text-sm hover:bg-neutral-100 border border-neutral-300 hover:border-neutral-400 transition-colors">
+            HTML
+          </button>
+          <button onClick={exportPNG} className="w-full text-left px-3 py-1.5 text-sm hover:bg-neutral-100 border border-neutral-300 hover:border-neutral-400 transition-colors">
+            PNG Image
+          </button>
+          <button onClick={exportPDF} className="w-full text-left px-3 py-1.5 text-sm hover:bg-neutral-100 border border-neutral-300 hover:border-neutral-400 transition-colors">
+            PDF
+          </button>
+        </div>
       </div>
     </aside>
   )

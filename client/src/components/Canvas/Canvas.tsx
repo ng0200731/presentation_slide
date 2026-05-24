@@ -26,7 +26,8 @@ export function Canvas() {
 
   return (
     <div
-      className="w-canvas bg-white border border-black min-h-[800px] p-8"
+      className="w-canvas bg-white border border-neutral-200 min-h-[800px] p-8"
+      data-canvas
       style={bgStyle}
       onClick={() => setActiveElement(null)}
     >

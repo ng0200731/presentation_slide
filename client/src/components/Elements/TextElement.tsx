@@ -1,16 +1,22 @@
+import { useRef, useEffect } from 'react'
 import { usePresentationStore } from '../../stores/presentationStore'
 
 export function TextElement({ element }) {
   const { updateElement } = usePresentationStore()
+  const ref = useRef(null)
   const styles = element.styles || {}
-  const content = element.content
-  const text = content?.[0]?.children?.[0]?.text || ''
+  const text = element.content?.[0]?.children?.[0]?.text || ''
+
+  useEffect(() => {
+    if (ref.current) ref.current.textContent = text
+  }, [])
 
   return (
     <div
+      ref={ref}
       contentEditable
       suppressContentEditableWarning
-      className="outline-none text-base"
+      className="outline-none text-base empty:before:content-['Content'] empty:before:text-neutral-300"
       style={{
         fontFamily: styles.fontFamily || 'inherit',
         fontSize: styles.fontSize || undefined,
@@ -18,14 +24,12 @@ export function TextElement({ element }) {
         textAlign: styles.textAlign || 'left',
         lineHeight: styles.lineHeight || 1.6,
       }}
-      onBlur={(e) => {
-        const newText = e.currentTarget.textContent
+      onBlur={() => {
+        const newText = ref.current?.textContent || ''
         updateElement(element.id, {
           content: [{ children: [{ text: newText }] }],
         })
       }}
-    >
-      {text}
-    </div>
+    />
   )
 }
