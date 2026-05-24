@@ -15,7 +15,7 @@ function renderElement(element) {
 }
 
 export function Canvas() {
-  const { elements, background, setActiveElement } = usePresentationStore()
+  const { elements, background, canvasPadding, canvasMargin, setActiveElement } = usePresentationStore()
   const [scale, setScale] = useState(1)
 
   useEffect(() => {
@@ -59,10 +59,12 @@ export function Canvas() {
       }
     >
       <div
-        className="bg-white border border-neutral-200 min-h-[800px] p-8 w-canvas"
+        className="bg-white border border-neutral-200 min-h-[800px] w-canvas"
         data-canvas
         style={{
           ...bgStyle,
+          padding: `${canvasPadding?.top || 32}px ${canvasPadding?.right || 32}px ${canvasPadding?.bottom || 32}px ${canvasPadding?.left || 32}px`,
+          margin: `${canvasMargin?.top || 0}px ${canvasMargin?.right || 0}px ${canvasMargin?.bottom || 0}px ${canvasMargin?.left || 0}px`,
           ...(isFullscreen ? {
             transform: `scale(${scale})`,
             transformOrigin: 'top center',

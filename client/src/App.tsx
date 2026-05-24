@@ -32,7 +32,7 @@ function App() {
   }
 
   const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event.active
+    const { active, over } = event
     if (over && active.id !== over.id) {
       const elementIds = elements.map(el => el.id)
       const oldIndex = elementIds.indexOf(active.id as string)

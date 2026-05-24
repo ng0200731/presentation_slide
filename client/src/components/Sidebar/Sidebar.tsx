@@ -23,6 +23,10 @@ export function Sidebar() {
 
   return (
     <aside className="w-56 bg-white border-r border-neutral-200 p-4 flex flex-col gap-4 shrink-0">
+      <Section title="Background" defaultOpen={true}>
+        <BackgroundControls />
+      </Section>
+
       <Section title="Add Element" defaultOpen={true}>
         <div className="space-y-1">
           <button
@@ -59,10 +63,6 @@ export function Sidebar() {
         </button>
       </Section>
 
-      <Section title="Background" defaultOpen={false}>
-        <BackgroundControls />
-      </Section>
-
       <Section title="Export" defaultOpen={false}>
         <div className="space-y-1">
           <button onClick={exportJSON} className="w-full text-left px-3 py-1.5 text-sm hover:bg-neutral-100 border border-neutral-300 hover:border-neutral-400 transition-colors">
@@ -84,10 +84,78 @@ export function Sidebar() {
 }
 
 function BackgroundControls() {
-  const { background, setBackground } = usePresentationStore()
+  const { background, setBackground, canvasPadding, setCanvasPadding, canvasMargin, setCanvasMargin } = usePresentationStore()
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
+      {/* Padding Controls */}
+      <div>
+        <label className="text-xs text-neutral-500 mb-1 block">Padding</label>
+        <div className="grid grid-cols-4 gap-1 text-[10px] text-neutral-400 text-center mb-0.5">
+          <span>Top</span><span>Right</span><span>Bottom</span><span>Left</span>
+        </div>
+        <div className="grid grid-cols-4 gap-1">
+          <input
+            type="number"
+            value={canvasPadding?.top || 0}
+            onChange={(e) => setCanvasPadding({ ...canvasPadding, top: parseInt(e.target.value) || 0 })}
+            className="w-full px-1 py-1 text-xs border border-neutral-300 text-center"
+          />
+          <input
+            type="number"
+            value={canvasPadding?.right || 0}
+            onChange={(e) => setCanvasPadding({ ...canvasPadding, right: parseInt(e.target.value) || 0 })}
+            className="w-full px-1 py-1 text-xs border border-neutral-300 text-center"
+          />
+          <input
+            type="number"
+            value={canvasPadding?.bottom || 0}
+            onChange={(e) => setCanvasPadding({ ...canvasPadding, bottom: parseInt(e.target.value) || 0 })}
+            className="w-full px-1 py-1 text-xs border border-neutral-300 text-center"
+          />
+          <input
+            type="number"
+            value={canvasPadding?.left || 0}
+            onChange={(e) => setCanvasPadding({ ...canvasPadding, left: parseInt(e.target.value) || 0 })}
+            className="w-full px-1 py-1 text-xs border border-neutral-300 text-center"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="text-xs text-neutral-500 mb-1 block">Margin</label>
+        <div className="grid grid-cols-4 gap-1 text-[10px] text-neutral-400 text-center mb-0.5">
+          <span>Top</span><span>Right</span><span>Bottom</span><span>Left</span>
+        </div>
+        <div className="grid grid-cols-4 gap-1">
+          <input
+            type="number"
+            value={canvasMargin?.top || 0}
+            onChange={(e) => setCanvasMargin({ ...canvasMargin, top: parseInt(e.target.value) || 0 })}
+            className="w-full px-1 py-1 text-xs border border-neutral-300 text-center"
+          />
+          <input
+            type="number"
+            value={canvasMargin?.right || 0}
+            onChange={(e) => setCanvasMargin({ ...canvasMargin, right: parseInt(e.target.value) || 0 })}
+            className="w-full px-1 py-1 text-xs border border-neutral-300 text-center"
+          />
+          <input
+            type="number"
+            value={canvasMargin?.bottom || 0}
+            onChange={(e) => setCanvasMargin({ ...canvasMargin, bottom: parseInt(e.target.value) || 0 })}
+            className="w-full px-1 py-1 text-xs border border-neutral-300 text-center"
+          />
+          <input
+            type="number"
+            value={canvasMargin?.left || 0}
+            onChange={(e) => setCanvasMargin({ ...canvasMargin, left: parseInt(e.target.value) || 0 })}
+            className="w-full px-1 py-1 text-xs border border-neutral-300 text-center"
+          />
+        </div>
+      </div>
+
+      {/* Background Type */}
       <div className="flex gap-1">
         <button
           onClick={() => setBackground({ type: 'solid', color: '#ffffff' })}

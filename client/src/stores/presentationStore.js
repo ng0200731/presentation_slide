@@ -25,6 +25,8 @@ export const usePresentationStore = create((set, get) => ({
   presentationId: null,
   title: 'Untitled Presentation',
   background: { type: 'solid', color: '#ffffff' },
+  canvasPadding: { top: 32, right: 32, bottom: 32, left: 32 },
+  canvasMargin: { top: 0, right: 0, bottom: 0, left: 0 },
   elements: [],
   activeElementId: null,
   isLoading: true,
@@ -198,6 +200,14 @@ export const usePresentationStore = create((set, get) => ({
   setBackground: (background) => {
     set({ background })
     get().savePresentation()
+  },
+
+  setCanvasPadding: (padding) => {
+    set({ canvasPadding: padding })
+  },
+
+  setCanvasMargin: (margin) => {
+    set({ canvasMargin: margin })
   },
 
   copyStyle: (elementId) => {
