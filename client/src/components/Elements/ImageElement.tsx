@@ -20,7 +20,7 @@ function imgUrl(url) {
 }
 
 export function ImageElement({ element }) {
-  const { updateElement, activeElementId } = usePresentationStore()
+  const { updateElement, activeElementId, setActiveElement } = usePresentationStore()
   const isActive = activeElementId === element.id
   const containerRef = useRef(null)
   const fileInputRef = useRef(null)
@@ -63,6 +63,11 @@ export function ImageElement({ element }) {
   const handleRemove = (index) => {
     const updated = images.filter((_, i) => i !== index)
     updateElement(element.id, { content: updated })
+  }
+
+  const closePopup = () => {
+    setHoveredIndex(null)
+    setActiveElement(null)
   }
 
   useEffect(() => {
@@ -154,10 +159,10 @@ export function ImageElement({ element }) {
 
   return (
     <>
-      {isActive && <ImageToolbar element={element} containerRef={containerRef} />}
+      {isActive && hoveredIndex === null && <ImageToolbar element={element} containerRef={containerRef} />}
       <div
         ref={containerRef}
-        className={`relative ${uploading ? 'opacity-60' : ''}`}
+        className={`relative bg-white ${uploading ? 'opacity-60' : ''}`}
         style={{ height }}
         onDragOver={handleDragOver}
         onDragEnter={handleDragEnter}
@@ -174,9 +179,9 @@ export function ImageElement({ element }) {
             {images.map((img, i) => (
               <div
                 key={i}
-                className="relative group rounded overflow-hidden bg-neutral-100 shrink-0"
+                className="relative group rounded overflow-hidden bg-neutral-100 shrink-0 cursor-pointer"
                 style={{ width: height, height }}
-                onMouseEnter={() => setHoveredIndex(i)}
+                onClick={(e) => { e.stopPropagation(); setHoveredIndex(i) }}
               >
                 <img
                   src={imgUrl(img.url)}
@@ -198,14 +203,14 @@ export function ImageElement({ element }) {
           </div>
         {/* Single popup for hovered image */}
         {hoveredIndex !== null && images[hoveredIndex] && images.length > 1 && (
-          <div className="fixed z-[9999] inset-0 flex items-center justify-center pointer-events-auto"
-            onMouseLeave={() => setHoveredIndex(null)}
+          <div className="fixed z-[9999] inset-0 flex items-center justify-center bg-black/30 pointer-events-auto"
+            onClick={(e) => { e.stopPropagation(); closePopup() }}
           >
-            <div className="relative flex items-center gap-2">
+            <div className="relative flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
               {hoveredIndex > 0 && (
                 <button
                   onClick={() => setHoveredIndex(hoveredIndex - 1)}
-                  className="w-10 h-10 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center text-xl shrink-0"
+                  className="w-10 h-10 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xl shrink-0"
                 >
                   ‹
                 </button>
@@ -220,7 +225,7 @@ export function ImageElement({ element }) {
               {hoveredIndex < images.length - 1 && (
                 <button
                   onClick={() => setHoveredIndex(hoveredIndex + 1)}
-                  className="w-10 h-10 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center text-xl shrink-0"
+                  className="w-10 h-10 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xl shrink-0"
                 >
                   ›
                 </button>
@@ -229,8 +234,10 @@ export function ImageElement({ element }) {
           </div>
         )}
         {hoveredIndex !== null && images[hoveredIndex] && images.length <= 1 && (
-          <div className="fixed z-[9999] inset-0 flex items-center justify-center pointer-events-none">
-            <div className="bg-white border border-neutral-300 shadow-2xl rounded p-1 max-w-[90vw] max-h-[90vh]">
+          <div className="fixed z-[9999] inset-0 flex items-center justify-center bg-black/30 pointer-events-auto"
+            onClick={(e) => { e.stopPropagation(); closePopup() }}
+          >
+            <div className="bg-white border border-neutral-300 shadow-2xl rounded p-1 max-w-[90vw] max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
               <img
                 src={imgUrl(images[hoveredIndex].url)}
                 alt={images[hoveredIndex].caption || `Image ${hoveredIndex + 1}`}
