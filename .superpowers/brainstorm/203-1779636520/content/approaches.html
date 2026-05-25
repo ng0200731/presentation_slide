@@ -1,0 +1,58 @@
+<h2>Design Proposal</h2>
+<p class="subtitle">Two approaches for implementing the multi-image gallery</p>
+
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">Approach A: Self-Contained Gallery Element (Recommended)</div>
+    <div class="mockup-body">
+      <div style="font-size:14px;padding:16px;">
+        <h3>One new element type: <code>image-gallery</code></h3>
+        <p><strong>Data model:</strong></p>
+        <ul>
+          <li><code>content</code>: JSON array of <code>{url, caption}</code> objects</li>
+          <li><code>styles.layout</code>: "grid" | "linear"</li>
+          <li><code>styles.thumbSize</code>: "small" | "medium" | "large"</li>
+        </ul>
+        <p><strong>Components:</strong></p>
+        <ul>
+          <li><code>ImageGalleryElement</code> — renders grid/linear + empty state with drop zone</li>
+          <li><code>ImageGalleryToolbar</code> — grid/linear toggle + size presets + add button</li>
+        </ul>
+        <p><strong>Upload flow:</strong></p>
+        <ul>
+          <li>New <code>/api/upload</code> endpoint accepts multipart, saves to <code>server/uploads/</code>, returns URL</li>
+          <li>Drop zone, paste handler, browse button all call same upload flow</li>
+          <li>URL appended to element content array</li>
+        </ul>
+        <p><strong>Pros:</strong> Clean separation, reusable, easy to extend</p>
+        <p><strong>Cons:</strong> New element type needed in store + canvas</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">Approach B: Extend Existing ImageElement</div>
+    <div class="mockup-body">
+      <div style="font-size:14px;padding:16px;">
+        <h3>Upgrade current <code>image</code> element</h3>
+        <p><strong>Data model changes:</strong></p>
+        <ul>
+          <li><code>content</code>: change from single URL string to array of <code>{url, caption}</code></li>
+          <li>Add layout/size style properties</li>
+        </ul>
+        <p><strong>Changes needed:</strong></p>
+        <ul>
+          <li>Refactor ImageElement to handle array content</li>
+          <li>Add toolbar controls to existing toolbar area</li>
+          <li>Backward-compatible: single URL auto-wraps to array</li>
+        </ul>
+        <p><strong>Pros:</strong> No new element type, backward compatible</p>
+        <p><strong>Cons:</strong> Mixes single-image and gallery concerns in one component</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="pros-cons" style="margin-top:24px;">
+  <div class="pros"><h4>Why I recommend A</h4><ul><li>Clean separation of concerns — gallery logic is complex (multi-upload, reordering, size presets, grid layout)</li><li>The existing ImageElement stays simple for single-image use cases</li><li>Easier to test and maintain independently</li></ul></div>
+</div>

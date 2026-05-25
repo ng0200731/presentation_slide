@@ -99,7 +99,9 @@ export const usePresentationStore = create((set, get) => ({
       ? [{ children: [{ text: '' }] }]
       : type === 'text'
         ? [{ children: [{ text: '' }] }]
-        : ''
+        : type === 'image'
+          ? []
+          : ''
 
     try {
       const result = await apiFetch('/elements', {

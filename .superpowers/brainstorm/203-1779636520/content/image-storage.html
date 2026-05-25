@@ -1,0 +1,19 @@
+<h2>Image Storage</h2>
+<p class="subtitle">Where should uploaded images be stored?</p>
+
+<div class="options">
+  <div class="option" data-choice="server" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Server Upload + URL</h3>
+      <p>Images uploaded to server, stored as files, referenced by URL. Better for persistence, larger images, and sharing presentations.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="base64" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Base64 in Content</h3>
+      <p>Images converted to base64 strings, stored directly in element content. Simple, no server changes needed. Works for small images (<500KB).</p>
+    </div>
+  </div>
+</div>

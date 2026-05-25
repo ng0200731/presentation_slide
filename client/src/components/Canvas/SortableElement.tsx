@@ -23,8 +23,9 @@ export function SortableElement({ element, children }) {
     opacity: isDragging ? 0.5 : 1,
   }
 
-  const margin = element.styles?.margin || '0px'
-  const padding = element.styles?.padding || '0px'
+  const s = element.styles || {}
+  const margin = `${s.marginTop || 0}px ${s.marginRight || 0}px ${s.marginBottom || 0}px ${s.marginLeft || 0}px`
+  const padding = `${s.paddingTop || 0}px ${s.paddingRight || 0}px ${s.paddingBottom || 0}px ${s.paddingLeft || 0}px`
 
   return (
     <div
@@ -42,7 +43,7 @@ export function SortableElement({ element, children }) {
       <div
         {...attributes}
         {...listeners}
-        className="absolute -left-8 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing p-1 text-neutral-400 hover:text-black transition-opacity"
+        className="absolute -left-8 top-0 h-full w-8 flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing text-neutral-400 hover:text-black transition-opacity"
         title="Drag to reorder"
       >
         <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
@@ -63,18 +64,16 @@ export function SortableElement({ element, children }) {
 
       {/* Active controls */}
       {isActive && (
-        <div className="absolute -top-6 right-0 flex gap-1">
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              deleteElement(element.id)
-            }}
-            className="text-xs px-1.5 py-0.5 bg-black text-white hover:bg-neutral-700 transition-colors"
-            title="Delete"
-          >
-            x
-          </button>
-        </div>
+        <button
+          onClick={(e) => {
+            e.stopPropagation()
+            if (confirm('Delete this element?')) deleteElement(element.id)
+          }}
+          className="absolute right-0 top-0 translate-x-full text-xs w-6 h-full bg-red-600 text-white hover:bg-red-700 transition-colors flex items-center justify-center"
+          title="Delete"
+        >
+          ×
+        </button>
       )}
 
       {children}

@@ -1,0 +1,128 @@
+<h2>Design: Multi-Image Gallery Element</h2>
+<p class="subtitle">Approach A — self-contained <code>image</code> element with gallery capabilities</p>
+
+<div class="section">
+  <h3>1. Data Model</h3>
+  <div class="mockup">
+    <div class="mockup-body" style="font-size:13px;padding:16px;">
+      <p><strong>Element type:</strong> <code>"image"</code> (replaces current single-image)</p>
+      <p><strong>content:</strong></p>
+      <pre style="background:#f5f5f5;padding:12px;border-radius:4px;font-size:12px;">[
+  { "url": "/uploads/abc123.jpg", "caption": "" },
+  { "url": "/uploads/def456.png", "caption": "" }
+]</pre>
+      <p><strong>styles:</strong></p>
+      <pre style="background:#f5f5f5;padding:12px;border-radius:4px;font-size:12px;">{
+  "layout": "grid",        // "grid" | "linear"
+  "thumbSize": "medium",   // "small" | "medium" | "large"
+  "gap": 8,                // spacing between thumbnails (px)
+  "columns": 3             // only for grid layout
+}</pre>
+      <p style="color:#666;font-size:12px;">Backward compat: if content is a string (old format), auto-wrap to [{url: content, caption: ""}]</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>2. Upload & Input Methods</h3>
+  <div class="cards">
+    <div class="card">
+      <div class="card-body">
+        <h4>Drag & Drop</h4>
+        <p>Drop zone on the empty gallery or on existing gallery area. Accepts image files. Shows hover highlight.</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <h4>Ctrl+V Paste</h4>
+        <p>Listen for paste events when gallery is active. Handles clipboard images (from screenshots, copied files). Uses Clipboard API.</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <h4>Browse Button</h4>
+        <p>Hidden file input triggered by "Add Image" button in toolbar. Accepts image/* types. Multiple file selection enabled.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>3. Thumbnail Display</h3>
+  <div class="mockup">
+    <div class="mockup-header">Grid Layout (default)</div>
+    <div class="mockup-body" style="padding:16px;">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+        <div style="background:#e5e5e5;aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:4px;color:#999;font-size:12px;">IMG 1</div>
+        <div style="background:#e5e5e5;aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:4px;color:#999;font-size:12px;">IMG 2</div>
+        <div style="background:#e5e5e5;aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:4px;color:#999;font-size:12px;">IMG 3</div>
+        <div style="background:#e5e5e5;aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:4px;color:#999;font-size:12px;">IMG 4</div>
+        <div style="background:#e5e5e5;aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:4px;color:#999;font-size:12px;">IMG 5</div>
+      </div>
+    </div>
+  </div>
+  <div class="mockup" style="margin-top:12px;">
+    <div class="mockup-header">Linear Layout</div>
+    <div class="mockup-body" style="padding:16px;">
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="background:#e5e5e5;height:48px;display:flex;align-items:center;padding:0 12px;border-radius:4px;color:#999;font-size:12px;">IMG 1</div>
+        <div style="background:#e5e5e5;height:48px;display:flex;align-items:center;padding:0 12px;border-radius:4px;color:#999;font-size:12px;">IMG 2</div>
+        <div style="background:#e5e5e5;height:48px;display:flex;align-items:center;padding:0 12px;border-radius:4px;color:#999;font-size:12px;">IMG 3</div>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:12px;">
+    <p><strong>Size presets:</strong></p>
+    <table style="width:100%;font-size:13px;border-collapse:collapse;">
+      <tr style="background:#f5f5f5;"><th style="padding:8px;text-align:left;">Size</th><th style="padding:8px;text-align:left;">Grid Thumb</th><th style="padding:8px;text-align:left;">Linear Height</th></tr>
+      <tr><td style="padding:8px;">Small</td><td style="padding:8px;">80px</td><td style="padding:8px;">60px</td></tr>
+      <tr style="background:#f5f5f5;"><td style="padding:8px;">Medium</td><td style="padding:8px;">140px</td><td style="padding:8px;">100px</td></tr>
+      <tr><td style="padding:8px;">Large</td><td style="padding:8px;">220px</td><td style="padding:8px;">160px</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="section">
+  <h3>4. Server: Upload Endpoint</h3>
+  <div class="mockup">
+    <div class="mockup-body" style="font-size:13px;padding:16px;">
+      <p><strong>POST /api/upload</strong> — multipart/form-data</p>
+      <ul>
+        <li>Accepts single or multiple files (field name: <code>images</code>)</li>
+        <li>Validates: image/* mime type, max 10MB per file</li>
+        <li>Saves to <code>server/uploads/</code> with unique filename</li>
+        <li>Returns: <code>{ urls: ["/uploads/abc123.jpg", ...] }</code></li>
+      </ul>
+      <p><strong>Serves static:</strong> <code>/uploads/*</code> mapped to <code>server/uploads/</code></p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>5. Component Structure</h3>
+  <div class="mockup">
+    <div class="mockup-body" style="font-size:13px;padding:16px;">
+      <pre style="font-size:12px;">
+components/
+  Elements/
+    ImageElement.tsx      ← rewritten: multi-image gallery
+  Toolbar/
+    ImageToolbar.tsx      ← NEW: grid/linear toggle + size presets + add btn
+      </pre>
+      <p style="margin-top:12px;"><strong>ImageElement responsibilities:</strong></p>
+      <ul>
+        <li>Render grid or linear layout based on styles.layout</li>
+        <li>Empty state: drop zone with "Drop images here, paste, or browse"</li>
+        <li>Image thumbnails with hover overlay (delete, caption edit)</li>
+        <li>Drop zone overlay on dragenter (even with existing images)</li>
+        <li>Paste listener when element is active</li>
+      </ul>
+      <p><strong>ImageToolbar responsibilities:</strong></p>
+      <ul>
+        <li>Grid/Linear toggle buttons</li>
+        <li>Small/Medium/Large size selector</li>
+        <li>"Add Image" button → triggers hidden file input</li>
+      </ul>
+    </div>
+  </div>
+</div>
