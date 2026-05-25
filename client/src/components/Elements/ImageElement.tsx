@@ -27,6 +27,7 @@ export function ImageElement({ element }) {
   const dragCountRef = useRef(0)
   const [dragging, setDragging] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [hoveredIndex, setHoveredIndex] = useState(null)
 
   const styles = element.styles || {}
   const layout = styles.layout || 'grid'
@@ -156,7 +157,7 @@ export function ImageElement({ element }) {
       {isActive && <ImageToolbar element={element} containerRef={containerRef} />}
       <div
         ref={containerRef}
-        className={`relative overflow-hidden ${uploading ? 'opacity-60' : ''}`}
+        className={`relative ${uploading ? 'opacity-60' : ''}`}
         style={{ height }}
         onDragOver={handleDragOver}
         onDragEnter={handleDragEnter}
@@ -169,20 +170,18 @@ export function ImageElement({ element }) {
           </div>
         )}
 
-        {layout === 'grid' ? (
-          <div
-            className="grid h-full"
-            style={{
-              gridTemplateColumns: `repeat(${columns}, 1fr)`,
-              gap: `${gap}px`,
-            }}
-          >
+        <div className="flex h-full" style={{ gap: `${gap}px` }}>
             {images.map((img, i) => (
-              <div key={i} className="relative group rounded overflow-hidden">
+              <div
+                key={i}
+                className="relative group rounded overflow-hidden bg-neutral-100 shrink-0"
+                style={{ width: height, height }}
+                onMouseEnter={() => setHoveredIndex(i)}
+              >
                 <img
                   src={imgUrl(img.url)}
                   alt={img.caption || `Image ${i + 1}`}
-                  className="w-full h-full object-contain rounded"
+                  className="w-full h-full object-cover rounded"
                 />
                 {isActive && (
                   <button
@@ -197,27 +196,47 @@ export function ImageElement({ element }) {
               </div>
             ))}
           </div>
-        ) : (
-          <div className="flex h-full" style={{ gap: `${gap}px` }}>
-            {images.map((img, i) => (
-              <div key={i} className="relative group rounded overflow-hidden flex-1">
+        {/* Single popup for hovered image */}
+        {hoveredIndex !== null && images[hoveredIndex] && images.length > 1 && (
+          <div className="fixed z-[9999] inset-0 flex items-center justify-center pointer-events-auto"
+            onMouseLeave={() => setHoveredIndex(null)}
+          >
+            <div className="relative flex items-center gap-2">
+              {hoveredIndex > 0 && (
+                <button
+                  onClick={() => setHoveredIndex(hoveredIndex - 1)}
+                  className="w-10 h-10 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center text-xl shrink-0"
+                >
+                  ‹
+                </button>
+              )}
+              <div className="bg-white border border-neutral-300 shadow-2xl rounded p-1 max-w-[90vw] max-h-[90vh]">
                 <img
-                  src={imgUrl(img.url)}
-                  alt={img.caption || `Image ${i + 1}`}
-                  className="w-full h-full object-contain rounded"
+                  src={imgUrl(images[hoveredIndex].url)}
+                  alt={images[hoveredIndex].caption || `Image ${hoveredIndex + 1}`}
+                  className="max-w-full max-h-[85vh] object-contain"
                 />
-                {isActive && (
-                  <button
-                    onMouseDown={(e) => e.stopPropagation()}
-                    onClick={(e) => { e.stopPropagation(); handleRemove(i) }}
-                    className="absolute top-1 right-1 w-5 h-5 bg-black text-white text-[11px] rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 z-30 cursor-pointer"
-                    title="Remove"
-                  >
-                    ×
-                  </button>
-                )}
               </div>
-            ))}
+              {hoveredIndex < images.length - 1 && (
+                <button
+                  onClick={() => setHoveredIndex(hoveredIndex + 1)}
+                  className="w-10 h-10 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center text-xl shrink-0"
+                >
+                  ›
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+        {hoveredIndex !== null && images[hoveredIndex] && images.length <= 1 && (
+          <div className="fixed z-[9999] inset-0 flex items-center justify-center pointer-events-none">
+            <div className="bg-white border border-neutral-300 shadow-2xl rounded p-1 max-w-[90vw] max-h-[90vh]">
+              <img
+                src={imgUrl(images[hoveredIndex].url)}
+                alt={images[hoveredIndex].caption || `Image ${hoveredIndex + 1}`}
+                className="max-w-full max-h-[85vh] object-contain"
+              />
+            </div>
           </div>
         )}
       </div>

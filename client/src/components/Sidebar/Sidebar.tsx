@@ -50,19 +50,6 @@ export function Sidebar() {
         </div>
       </Section>
 
-      <Section title="Actions" defaultOpen={false}>
-        <button
-          onClick={() => {
-            if (confirm('Delete all elements?')) {
-              clearAllElements()
-            }
-          }}
-          className="w-full text-left px-3 py-1.5 text-sm hover:bg-red-50 border border-neutral-300 hover:border-red-400 hover:text-red-600 transition-colors"
-        >
-          Clear All
-        </button>
-      </Section>
-
       <Section title="CSS" defaultOpen={false}>
         <CssSection />
       </Section>
@@ -82,6 +69,19 @@ export function Sidebar() {
             PDF
           </button>
         </div>
+      </Section>
+
+      <Section title="Actions" defaultOpen={false}>
+        <button
+          onClick={() => {
+            if (confirm('Delete all elements?')) {
+              clearAllElements()
+            }
+          }}
+          className="w-full text-left px-3 py-1.5 text-sm hover:bg-red-50 border border-neutral-300 hover:border-red-400 hover:text-red-600 transition-colors"
+        >
+          Clear All
+        </button>
       </Section>
     </aside>
   )
