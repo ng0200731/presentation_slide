@@ -47,13 +47,14 @@ function SpacingGroup({ label, topKey, bottomKey, leftKey, rightKey, element, on
   )
 }
 
-export function TitleToolbar({ element, editorRef, onToolbarFocus, onToolbarBlur }) {
+export function TitleToolbar({ element, editorRef, onToolbarFocus, onToolbarBlur, slateEditor }) {
   const { updateElement, customStyles, saveCustomStyle, applyCustomStyle, updateCustomStyle } = usePresentationStore()
   const styles = element.styles || {}
   const [saving, setSaving] = useState(false)
   const [styleName, setStyleName] = useState('')
   const [applyOpen, setApplyOpen] = useState(false)
   const applyRef = useRef(null)
+  const isText = element.type === 'text'
 
   const appliedStyle = element.style_id ? customStyles.find(s => s.id === element.style_id) : null
   const matchingStyles = customStyles.filter(s => s.type === element.type)
@@ -104,7 +105,7 @@ export function TitleToolbar({ element, editorRef, onToolbarFocus, onToolbarBlur
 
   return (
     <div
-      className="fixed z-50 bg-white border border-neutral-300 shadow-lg rounded px-2 py-1 flex flex-col gap-1"
+      className="fixed z-[10001] bg-white border border-neutral-300 shadow-lg rounded px-2 py-1 flex flex-col gap-1"
       style={{ top: rect.top - 60, left: rect.left, width: rect.width }}
     >
       <div className="flex items-center gap-2">
@@ -165,7 +166,7 @@ export function TitleToolbar({ element, editorRef, onToolbarFocus, onToolbarBlur
         <div ref={applyRef} className="relative shrink-0">
           <button onMouseDown={(e) => e.preventDefault()} onClick={() => setApplyOpen(!applyOpen)} className="px-1.5 py-0.5 text-xs hover:bg-neutral-100" title="Apply saved style">Apply ▾</button>
           {applyOpen && (
-            <div className="absolute top-full left-0 mt-1 bg-white border border-neutral-300 shadow-lg rounded py-1 w-40 z-50 max-h-48 overflow-auto">
+            <div className="absolute top-full left-0 mt-1 bg-white border border-neutral-300 shadow-lg rounded py-1 w-40 z-[10002] max-h-48 overflow-auto">
               {matchingStyles.length === 0 ? (
                 <div className="px-3 py-1 text-xs text-neutral-400">No saved styles</div>
               ) : matchingStyles.map(s => (
@@ -181,6 +182,50 @@ export function TitleToolbar({ element, editorRef, onToolbarFocus, onToolbarBlur
         <div className="w-px h-5 bg-neutral-200 shrink-0" />
         <SpacingGroup label="Mar" topKey="marginTop" bottomKey="marginBottom" leftKey="marginLeft" rightKey="marginRight" element={element} onToolbarFocus={onToolbarFocus} onToolbarBlur={onToolbarBlur} />
       </div>
+
+      {isText && slateEditor && (
+        <div className="flex items-center gap-1">
+          <button onMouseDown={(e) => e.preventDefault()} onClick={() => toggleSlateMark(slateEditor, 'bold')} className={`px-1.5 py-0.5 text-xs hover:bg-neutral-100 font-bold`}>B</button>
+          <button onMouseDown={(e) => e.preventDefault()} onClick={() => toggleSlateMark(slateEditor, 'italic')} className={`px-1.5 py-0.5 text-xs hover:bg-neutral-100 italic`}>I</button>
+          <button onMouseDown={(e) => e.preventDefault()} onClick={() => toggleSlateMark(slateEditor, 'underline')} className={`px-1.5 py-0.5 text-xs hover:bg-neutral-100 underline`}>U</button>
+
+          <div className="w-px h-5 bg-neutral-200" />
+
+          <button onMouseDown={(e) => e.preventDefault()} onClick={() => toggleSlateBlock(slateEditor, 'bulleted-list')} className="px-1.5 py-0.5 text-xs hover:bg-neutral-100" title="Bullet List">• List</button>
+          <button onMouseDown={(e) => e.preventDefault()} onClick={() => toggleSlateBlock(slateEditor, 'numbered-list')} className="px-1.5 py-0.5 text-xs hover:bg-neutral-100" title="Numbered List">1. List</button>
+
+          <div className="w-px h-5 bg-neutral-200" />
+
+          <button onMouseDown={(e) => e.preventDefault()} onClick={() => {
+            const url = window.prompt('Enter URL:', 'https://')
+            if (!url) return
+            const fullUrl = url.match(/^https?:\/\//) ? url : 'https://' + url
+            ReactEditor.focus(slateEditor)
+            Transforms.insertNodes(slateEditor, {
+              type: 'link',
+              url: fullUrl,
+              children: [{ text: fullUrl }],
+            })
+          }} className="px-1.5 py-0.5 text-xs hover:bg-neutral-100" title="Link (Ctrl+K)">Link</button>
+
+          <button onMouseDown={(e) => e.preventDefault()} onClick={() => insertSlateTable(slateEditor)} className="px-1.5 py-0.5 text-xs hover:bg-neutral-100" title="Insert Table">Table</button>
+        </div>
+      )}
     </div>
   )
 }
+
+import { Editor as SlateEditorAPI, Transforms, Element as SlateElement } from 'slate'
+import { ReactEditor } from 'slate-react'
+import { toggleBlock, insertLink, isLinkActive, unwrapLink, insertTable } from '../Elements/SlateEditor'
+
+function toggleSlateMark(editor, format) {
+  const isActive = SlateEditorAPI.marks(editor)?.[format]
+  if (isActive) SlateEditorAPI.removeMark(editor, format)
+  else SlateEditorAPI.addMark(editor, format, true)
+}
+function toggleSlateBlock(editor, format) { toggleBlock(editor, format) }
+function isSlateLinkActive(editor) { return isLinkActive(editor) }
+function unwrapSlateLink(editor) { return unwrapLink(editor) }
+function insertSlateLink(editor, url) { return insertLink(editor, url) }
+function insertSlateTable(editor) { return insertTable(editor) }

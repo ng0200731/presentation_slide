@@ -20,8 +20,8 @@ function imgUrl(url) {
 }
 
 export function ImageElement({ element }) {
-  const { updateElement, activeElementId, setActiveElement } = usePresentationStore()
-  const isActive = activeElementId === element.id
+  const { updateElement, activeElementId, setActiveElement, isFullscreen } = usePresentationStore()
+  const isActive = !isFullscreen && activeElementId === element.id
   const containerRef = useRef(null)
   const fileInputRef = useRef(null)
   const dragCountRef = useRef(0)
@@ -181,7 +181,7 @@ export function ImageElement({ element }) {
                 key={i}
                 className="relative group rounded overflow-hidden bg-neutral-100 shrink-0 cursor-pointer"
                 style={{ width: height, height }}
-                onClick={(e) => { e.stopPropagation(); setHoveredIndex(i) }}
+                onClick={isActive ? (e) => { e.stopPropagation(); setHoveredIndex(i) } : undefined}
               >
                 <img
                   src={imgUrl(img.url)}
@@ -203,7 +203,7 @@ export function ImageElement({ element }) {
           </div>
         {/* Single popup for hovered image */}
         {hoveredIndex !== null && images[hoveredIndex] && images.length > 1 && (
-          <div className="fixed z-[9999] inset-0 flex items-center justify-center bg-black/30 pointer-events-auto"
+          <div className="fixed z-[10001] inset-0 flex items-center justify-center bg-black/30 pointer-events-auto"
             onClick={(e) => { e.stopPropagation(); closePopup() }}
           >
             <div className="relative flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
@@ -234,7 +234,7 @@ export function ImageElement({ element }) {
           </div>
         )}
         {hoveredIndex !== null && images[hoveredIndex] && images.length <= 1 && (
-          <div className="fixed z-[9999] inset-0 flex items-center justify-center bg-black/30 pointer-events-auto"
+          <div className="fixed z-[10001] inset-0 flex items-center justify-center bg-black/30 pointer-events-auto"
             onClick={(e) => { e.stopPropagation(); closePopup() }}
           >
             <div className="bg-white border border-neutral-300 shadow-2xl rounded p-1 max-w-[90vw] max-h-[90vh]" onClick={(e) => e.stopPropagation()}>

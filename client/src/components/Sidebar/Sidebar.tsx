@@ -252,6 +252,7 @@ function CssSection() {
   const groups = [
     { type: 'title', label: 'Title' },
     { type: 'text', label: 'Text' },
+    { type: 'image', label: 'Image' },
   ]
 
   const handleRename = (id) => {

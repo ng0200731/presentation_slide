@@ -2,9 +2,9 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { usePresentationStore } from '../../stores/presentationStore'
 
-export function SortableElement({ element, children }) {
+export function SortableElement({ element, children, isFullscreen }) {
   const { activeElementId, setActiveElement, deleteElement, customStyles } = usePresentationStore()
-  const isActive = activeElementId === element.id
+  const isActive = !isFullscreen && activeElementId === element.id
 
   const appliedStyle = element.style_id ? customStyles.find(s => s.id === element.style_id) : null
 
@@ -31,15 +31,17 @@ export function SortableElement({ element, children }) {
     <div
       ref={setNodeRef}
       style={{ ...style, margin, padding }}
-      className={`relative group mb-2 ${
-        isActive ? 'ring-2 ring-black' : 'hover:ring-1 hover:ring-neutral-300'
+      className={`relative mb-2 ${isFullscreen ? '' : 'group'} ${
+        isActive ? 'ring-2 ring-black' : isFullscreen ? '' : 'hover:ring-1 hover:ring-neutral-300'
       }`}
       onClick={(e) => {
+        if (isFullscreen) return
         e.stopPropagation()
         setActiveElement(element.id)
       }}
     >
       {/* Drag handle */}
+      {!isFullscreen && (
       <div
         {...attributes}
         {...listeners}
@@ -55,12 +57,15 @@ export function SortableElement({ element, children }) {
           <circle cx="11" cy="13" r="1.5"/>
         </svg>
       </div>
+      )}
 
       {/* Element type label + style name - always show when active */}
+      {!isFullscreen && (
       <div className={`absolute -top-5 left-0 text-[10px] text-neutral-400 flex items-center gap-1 transition-opacity ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
         <span>{element.type}</span>
         {appliedStyle && <span className="bg-neutral-200 px-1 rounded">{appliedStyle.name}</span>}
       </div>
+      )}
 
       {/* Active controls */}
       {isActive && (

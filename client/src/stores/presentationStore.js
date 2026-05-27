@@ -29,6 +29,7 @@ export const usePresentationStore = create((set, get) => ({
   canvasMargin: { top: 0, right: 0, bottom: 0, left: 0 },
   elements: [],
   activeElementId: null,
+  isFullscreen: false,
   isLoading: true,
   error: null,
   copiedStyle: null,
@@ -200,6 +201,7 @@ export const usePresentationStore = create((set, get) => ({
   },
 
   setActiveElement: (elementId) => set({ activeElementId: elementId }),
+  setFullscreen: (val) => set({ isFullscreen: val, activeElementId: val ? null : get().activeElementId }),
 
   setBackground: (background) => {
     set({ background })

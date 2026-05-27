@@ -1,21 +1,27 @@
 import { useMemo, useCallback, useRef, useEffect, useState } from 'react'
-import { createEditor, Transforms, Editor, Element as SlateElement } from 'slate'
+import { createEditor, Transforms, Editor, Element as SlateElement, Text } from 'slate'
 import { Slate, Editable, withReact, ReactEditor } from 'slate-react'
+import { withHistory } from 'slate-history'
 import { usePresentationStore } from '../../stores/presentationStore'
 import { FloatingToolbar } from '../Toolbar/FloatingToolbar'
 import { elementStylesToCSS } from '../../utils/slateUtils'
 
 const LIST_TYPES = ['numbered-list', 'bulleted-list']
 
-export function SlateEditor({ element, placeholder = 'Type here...' }) {
-  const { updateElement, activeElementId, setActiveElement } = usePresentationStore()
-  const editor = useMemo(() => withReact(createEditor()), [])
+export function SlateEditor({ element, placeholder = 'Type here...', editor: externalEditor }) {
+  const { updateElement, activeElementId, setActiveElement, isFullscreen } = usePresentationStore()
+  const internalEditor = useMemo(() => {
+    const e = withHistory(withReact(createEditor()))
+    const { isInline } = e
+    e.isInline = (element) => element.type === 'link' ? true : isInline(element)
+    return e
+  }, [])
+  const editor = externalEditor || internalEditor
   const editorRef = useRef(null)
   const [toolbarPosition, setToolbarPosition] = useState(null)
-  const isActive = activeElementId === element.id
+  const isActive = !isFullscreen && activeElementId === element.id
   const styles = element.styles || {}
 
-  // Initialize editor value from element content
   const initialValue = useMemo(() => {
     if (Array.isArray(element.content) && element.content.length > 0) {
       return element.content
@@ -23,7 +29,6 @@ export function SlateEditor({ element, placeholder = 'Type here...' }) {
     return [{ type: 'paragraph', children: [{ text: '' }] }]
   }, [element.id])
 
-  // Handle rich text rendering
   const renderElement = useCallback((props) => {
     const { attributes, children, element: node } = props
     switch (node.type) {
@@ -31,9 +36,29 @@ export function SlateEditor({ element, placeholder = 'Type here...' }) {
       case 'heading-two': return <h2 {...attributes}>{children}</h2>
       case 'heading-three': return <h3 {...attributes}>{children}</h3>
       case 'block-quote': return <blockquote {...attributes}>{children}</blockquote>
-      case 'bulleted-list': return <ul {...attributes}>{children}</ul>
-      case 'numbered-list': return <ol {...attributes}>{children}</ol>
+      case 'bulleted-list': return <ul {...attributes} className="list-disc pl-5">{children}</ul>
+      case 'numbered-list': return <ol {...attributes} className="list-decimal pl-5">{children}</ol>
       case 'list-item': return <li {...attributes}>{children}</li>
+      case 'link':
+        return (
+          <a {...attributes} href={node.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline cursor-pointer">
+            {children}
+          </a>
+        )
+      case 'table':
+        return (
+          <table {...attributes} className="border-collapse w-full border border-neutral-300">
+            <tbody>{children}</tbody>
+          </table>
+        )
+      case 'table-row':
+        return <tr {...attributes}>{children}</tr>
+      case 'table-cell':
+        return (
+          <td {...attributes} className="border border-neutral-300 px-2 py-1 min-w-[60px]">
+            {children}
+          </td>
+        )
       default: return <p {...attributes}>{children}</p>
     }
   }, [])
@@ -43,16 +68,12 @@ export function SlateEditor({ element, placeholder = 'Type here...' }) {
     if (leaf.bold) children = <strong>{children}</strong>
     if (leaf.italic) children = <em>{children}</em>
     if (leaf.underline) children = <u>{children}</u>
-    if (leaf.code) children = <code>{children}</code>
+    if (leaf.code) children = <code className="bg-neutral-100 px-1 rounded text-sm">{children}</code>
     return <span {...attributes}>{children}</span>
   }, [])
 
-  // Save content on change
   const handleChange = useCallback((value) => {
-    // Update toolbar position on selection change
     updateToolbarPosition()
-
-    // Save content
     if (editor.operations.some(op => op.type !== 'set_selection')) {
       updateElement(element.id, { content: value })
     }
@@ -76,7 +97,6 @@ export function SlateEditor({ element, placeholder = 'Type here...' }) {
     }
   }, [])
 
-  // Keyboard shortcuts
   const handleKeyDown = useCallback((event) => {
     if (!event.ctrlKey && !event.metaKey) return
 
@@ -93,8 +113,19 @@ export function SlateEditor({ element, placeholder = 'Type here...' }) {
         event.preventDefault()
         toggleMark(editor, 'underline')
         break
+      case 'k':
+        event.preventDefault()
+        insertLink(editor, window.prompt('URL:', 'https://') || '')
+        break
     }
   }, [editor])
+
+  // Auto-focus when active
+  useEffect(() => {
+    if (isActive) {
+      ReactEditor.focus(editor)
+    }
+  }, [isActive])
 
   const cssStyles = elementStylesToCSS(styles)
 
@@ -112,10 +143,18 @@ export function SlateEditor({ element, placeholder = 'Type here...' }) {
         <Editable
           renderElement={renderElement}
           renderLeaf={renderLeaf}
-          onKeyDown={handleKeyDown}
+          onKeyDown={isFullscreen ? (e) => e.preventDefault() : handleKeyDown}
           placeholder={placeholder}
           style={cssStyles}
           className="outline-none"
+          readOnly={isFullscreen}
+          onClick={(e) => {
+            const link = e.target.closest('a')
+            if (link && link.href) {
+              e.preventDefault()
+              window.open(link.href, '_blank', 'noopener,noreferrer')
+            }
+          }}
         />
       </Slate>
     </div>
@@ -167,4 +206,55 @@ function isBlockActive(editor, format) {
     })
   )
   return !!match
+}
+
+// Link
+export function insertLink(editor, url) {
+  if (!url) return
+  const { selection } = editor
+
+  if (!selection || Editor.isCollapsed(editor, selection || {})) {
+    Transforms.insertNodes(editor, {
+      type: 'link',
+      url,
+      children: [{ text: url }],
+    })
+  } else {
+    Transforms.wrapNodes(editor, {
+      type: 'link',
+      url,
+      children: [],
+    }, { split: true })
+  }
+}
+
+export function isLinkActive(editor) {
+  const [link] = Array.from(
+    Editor.nodes(editor, {
+      match: (n) => !Editor.isEditor(n) && SlateElement.isElement(n) && n.type === 'link',
+    })
+  )
+  return !!link
+}
+
+export function unwrapLink(editor) {
+  Transforms.unwrapNodes(editor, {
+    match: (n) => !Editor.isEditor(n) && SlateElement.isElement(n) && n.type === 'link',
+  })
+}
+
+// Table
+export function insertTable(editor, rows = 3, cols = 3) {
+  const table = {
+    type: 'table',
+    children: Array.from({ length: rows }, () => ({
+      type: 'table-row',
+      children: Array.from({ length: cols }, () => ({
+        type: 'table-cell',
+        children: [{ text: '' }],
+      })),
+    })),
+  }
+  Transforms.insertNodes(editor, table)
+  Transforms.move(editor)
 }

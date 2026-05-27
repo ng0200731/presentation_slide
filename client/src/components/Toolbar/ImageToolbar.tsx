@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { usePresentationStore } from '../../stores/presentationStore'
 
 const API = 'http://localhost:3001'
@@ -23,9 +23,7 @@ function SpacingGroup({ label, topKey, bottomKey, leftKey, rightKey, element }) 
 
   const toggleLinkTB = () => {
     if (!linkTB) {
-      const topVal = styles[topKey] ?? 0
-      const bottomVal = styles[bottomKey] ?? 0
-      const synced = topVal
+      const synced = styles[topKey] ?? 0
       updateElement(element.id, { styles: { ...styles, [topKey]: synced, [bottomKey]: synced } })
     }
     setLinkTB(!linkTB)
@@ -33,9 +31,7 @@ function SpacingGroup({ label, topKey, bottomKey, leftKey, rightKey, element }) 
 
   const toggleLinkLR = () => {
     if (!linkLR) {
-      const leftVal = styles[leftKey] ?? 0
-      const rightVal = styles[rightKey] ?? 0
-      const synced = leftVal
+      const synced = styles[leftKey] ?? 0
       updateElement(element.id, { styles: { ...styles, [leftKey]: synced, [rightKey]: synced } })
     }
     setLinkLR(!linkLR)
@@ -55,12 +51,53 @@ function SpacingGroup({ label, topKey, bottomKey, leftKey, rightKey, element }) 
 }
 
 export function ImageToolbar({ element, containerRef }) {
-  const { updateElement } = usePresentationStore()
+  const { updateElement, customStyles, saveCustomStyle, applyCustomStyle, updateCustomStyle } = usePresentationStore()
   const styles = element.styles || {}
   const fileInputRef = useRef(null)
+  const applyRef = useRef(null)
+  const [saving, setSaving] = useState(false)
+  const [styleName, setStyleName] = useState('')
+  const [applyOpen, setApplyOpen] = useState(false)
+
+  const appliedStyle = element.style_id ? customStyles.find(s => s.id === element.style_id) : null
+  const matchingStyles = customStyles.filter(s => s.type === element.type)
 
   const updateStyle = (key, value) => {
     updateElement(element.id, { styles: { ...styles, [key]: value } })
+  }
+
+  useEffect(() => {
+    if (!applyOpen) return
+    const onClick = (e) => {
+      if (applyRef.current && !applyRef.current.contains(e.target)) setApplyOpen(false)
+    }
+    document.addEventListener('mousedown', onClick)
+    return () => document.removeEventListener('mousedown', onClick)
+  }, [applyOpen])
+
+  const handleSave = () => {
+    const name = styleName.trim()
+    if (!name) return
+    const existing = customStyles.find(s => s.name === name && s.type === element.type)
+    if (existing) {
+      if (!confirm(`"${name}" already exists. Overwrite?`)) return
+      updateCustomStyle(existing.id, styles)
+    } else {
+      saveCustomStyle({ name, type: element.type, styles })
+    }
+    setStyleName('')
+    setSaving(false)
+  }
+
+  const handleSaveClick = () => {
+    if (appliedStyle) {
+      if (confirm(`Update "${appliedStyle.name}" with current styles?`)) {
+        updateCustomStyle(appliedStyle.id, styles)
+        return
+      }
+    }
+    setSaving(true)
+    setStyleName('')
   }
 
   const handleFiles = async (files) => {
@@ -90,10 +127,13 @@ export function ImageToolbar({ element, containerRef }) {
   return (
     <div
       className="fixed bg-white border border-neutral-300 shadow-lg rounded px-2 py-1 flex flex-col gap-1 pointer-events-auto"
-      style={{ top: rect.top - 100, left: rect.left, width: Math.min(rect.width, 500), zIndex: 9999 }}
+      style={{ top: rect.top - 100, left: rect.left, width: Math.min(rect.width, 500), zIndex: 10001 }}
     >
       <div className="flex items-center gap-2">
-        <span className="text-[10px] text-neutral-400 uppercase">image</span>
+        <div className="flex items-center gap-1 shrink-0">
+          <span className="text-[10px] text-neutral-400 uppercase">image</span>
+          {appliedStyle && <span className="text-[10px] bg-neutral-200 px-1 rounded">{appliedStyle.name}</span>}
+        </div>
 
         <div className="w-px h-5 bg-neutral-200" />
 
@@ -143,6 +183,41 @@ export function ImageToolbar({ element, containerRef }) {
           className="hidden"
           onChange={(e) => { handleFiles(e.target.files); e.target.value = '' }}
         />
+
+        <div className="w-px h-5 bg-neutral-200" />
+
+        {/* Save */}
+        {saving ? (
+          <div className="flex items-center gap-1 shrink-0">
+            <input
+              type="text" value={styleName} onChange={(e) => setStyleName(e.target.value)} placeholder="Name"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleSave()
+                if (e.key === 'Escape') setSaving(false)
+              }}
+              className="w-16 px-1 py-0.5 text-xs border border-neutral-300" autoFocus
+            />
+            <button onMouseDown={(e) => e.preventDefault()} onClick={handleSave} className="px-1.5 py-0.5 text-xs bg-black text-white hover:bg-neutral-700">OK</button>
+          </div>
+        ) : (
+          <button onMouseDown={(e) => e.preventDefault()} onClick={handleSaveClick} className="px-1.5 py-0.5 text-xs hover:bg-neutral-100" title="Save style">Save</button>
+        )}
+
+        <div className="w-px h-5 bg-neutral-200" />
+
+        {/* Apply */}
+        <div ref={applyRef} className="relative shrink-0">
+          <button onMouseDown={(e) => e.preventDefault()} onClick={() => setApplyOpen(!applyOpen)} className="px-1.5 py-0.5 text-xs hover:bg-neutral-100" title="Apply saved style">Apply ▾</button>
+          {applyOpen && (
+            <div className="absolute top-full left-0 mt-1 bg-white border border-neutral-300 shadow-lg rounded py-1 w-40 z-50 max-h-48 overflow-auto">
+              {matchingStyles.length === 0 ? (
+                <div className="px-3 py-1 text-xs text-neutral-400">No saved styles</div>
+              ) : matchingStyles.map(s => (
+                <button key={s.id} onMouseDown={(e) => e.preventDefault()} onClick={() => { applyCustomStyle(s.id, element.id); setApplyOpen(false) }} className={`w-full text-left px-3 py-1 text-xs hover:bg-neutral-100 ${s.id === element.style_id ? 'bg-neutral-100 font-medium' : ''}`}>{s.name}</button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="flex items-center gap-2">

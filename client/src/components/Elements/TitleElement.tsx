@@ -42,10 +42,10 @@ function contentToHtml(content) {
 }
 
 export function TitleElement({ element }) {
-  const { updateElement, activeElementId, setActiveElement } = usePresentationStore()
+  const { updateElement, activeElementId, setActiveElement, isFullscreen } = usePresentationStore()
   const ref = useRef(null)
   const [toolbarActive, setToolbarActive] = useState(false)
-  const isActive = activeElementId === element.id
+  const isActive = !isFullscreen && activeElementId === element.id
   const styles = element.styles || {}
 
   useEffect(() => {
@@ -61,12 +61,19 @@ export function TitleElement({ element }) {
     }
   }, [])
 
+  // Auto-focus when element becomes active
+  useEffect(() => {
+    if (isActive && ref.current) {
+      ref.current.focus()
+    }
+  }, [isActive])
+
   return (
     <>
       {isActive && <TitleToolbar element={element} editorRef={ref} onToolbarFocus={() => setToolbarActive(true)} onToolbarBlur={() => setToolbarActive(false)} />}
       <div
         ref={ref}
-        contentEditable
+        contentEditable={!isFullscreen}
         suppressContentEditableWarning
         className="outline-none text-3xl font-bold empty:before:content-['Title'] empty:before:text-neutral-300"
         style={{

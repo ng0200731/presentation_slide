@@ -1,26 +1,24 @@
 import { Editor } from 'slate'
-import { toggleBlock } from '../Elements/SlateEditor'
+import { toggleBlock, insertLink, isLinkActive, unwrapLink, insertTable } from '../Elements/SlateEditor'
 import { PresetStyles } from './PresetStyles'
 
 export function FloatingToolbar({ editor, position, element, editorRef }) {
-  // If no text selection, position toolbar at top-left of the editor element
-  let toolbarStyle
-  if (position) {
-    toolbarStyle = {
-      position: 'fixed',
-      top: position.top,
-      left: position.left,
-      transform: 'translateX(-50%)',
+  if (!position) return null
+
+  const toolbarStyle = {
+    position: 'fixed',
+    top: position.top,
+    left: position.left,
+    transform: 'translateX(-50%)',
+  }
+
+  const handleLink = () => {
+    if (isLinkActive(editor)) {
+      unwrapLink(editor)
+    } else {
+      const url = window.prompt('Enter URL:', 'https://')
+      if (url) insertLink(editor, url)
     }
-  } else if (editorRef?.current) {
-    const rect = editorRef.current.getBoundingClientRect()
-    toolbarStyle = {
-      position: 'fixed',
-      top: rect.top - 40,
-      left: rect.left,
-    }
-  } else {
-    return null
   }
 
   return (
@@ -41,9 +39,35 @@ export function FloatingToolbar({ editor, position, element, editorRef }) {
 
       <div className="w-px h-5 bg-neutral-200 mx-0.5" />
 
-      <BlockButton editor={editor} format="bulleted-list" label="UL" />
-      <BlockButton editor={editor} format="numbered-list" label="OL" />
+      <BlockButton editor={editor} format="bulleted-list" label="• List" />
+      <BlockButton editor={editor} format="numbered-list" label="1. List" />
       <BlockButton editor={editor} format="block-quote" label="Q" />
+
+      <div className="w-px h-5 bg-neutral-200 mx-0.5" />
+
+      {/* Link */}
+      <button
+        onMouseDown={(e) => {
+          e.preventDefault()
+          handleLink()
+        }}
+        className={`px-1.5 py-0.5 text-xs hover:bg-neutral-100 transition-colors ${isLinkActive(editor) ? 'bg-neutral-200' : ''}`}
+        title="Link (Ctrl+K)"
+      >
+        🔗
+      </button>
+
+      {/* Table */}
+      <button
+        onMouseDown={(e) => {
+          e.preventDefault()
+          insertTable(editor)
+        }}
+        className="px-1.5 py-0.5 text-xs hover:bg-neutral-100 transition-colors"
+        title="Insert Table"
+      >
+        ⊞
+      </button>
 
       <div className="w-px h-5 bg-neutral-200 mx-0.5" />
 

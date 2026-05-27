@@ -1,10 +1,11 @@
+import { useEffect } from 'react'
 import { usePresentationStore } from '../../stores/presentationStore'
 import { SortableElement } from './SortableElement'
 import { TitleElement } from '../Elements/TitleElement'
 import { TextElement } from '../Elements/TextElement'
 import { ImageElement } from '../Elements/ImageElement'
 
-function renderElement(element) {
+function renderElement(element, isFullscreen) {
   switch (element.type) {
     case 'title': return <TitleElement element={element} />
     case 'text': return <TextElement element={element} />
@@ -14,7 +15,11 @@ function renderElement(element) {
 }
 
 export function Canvas({ isFullscreen, onExitFullscreen }) {
-  const { elements, background, canvasPadding, canvasMargin, setActiveElement } = usePresentationStore()
+  const { elements, background, canvasPadding, canvasMargin, setActiveElement, setFullscreen } = usePresentationStore()
+
+  useEffect(() => {
+    setFullscreen(isFullscreen)
+  }, [isFullscreen])
 
   const bgStyle = background.type === 'solid'
     ? { backgroundColor: background.color }
@@ -38,7 +43,7 @@ export function Canvas({ isFullscreen, onExitFullscreen }) {
       data-canvas
       className="bg-white border border-neutral-200 w-canvas"
       style={canvasStyle}
-      onClick={() => setActiveElement(null)}
+      onClick={() => { if (!isFullscreen) setActiveElement(null) }}
     >
       {elements.length === 0 ? (
         <div className="text-center text-neutral-400 text-sm py-20">
@@ -46,8 +51,8 @@ export function Canvas({ isFullscreen, onExitFullscreen }) {
         </div>
       ) : (
         elements.map((element) => (
-          <SortableElement key={element.id} element={element}>
-            {renderElement(element)}
+          <SortableElement key={element.id} element={element} isFullscreen={isFullscreen}>
+            {renderElement(element, isFullscreen)}
           </SortableElement>
         ))
       )}

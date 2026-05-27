@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS presentations (
 CREATE TABLE IF NOT EXISTS elements (
   id TEXT PRIMARY KEY,
   presentation_id TEXT NOT NULL,
-  type TEXT NOT NULL CHECK(type IN ('title','text','image')),
+  type TEXT NOT NULL,
   position INTEGER NOT NULL,
   content TEXT NOT NULL,
   styles TEXT DEFAULT '{}',
@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS elements (
 CREATE TABLE IF NOT EXISTS custom_styles (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
-  type TEXT NOT NULL CHECK(type IN ('title','text')),
+  type TEXT NOT NULL,
   styles TEXT NOT NULL,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
